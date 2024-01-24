@@ -1,10 +1,5 @@
 using UnityEngine;
 using UnityEditor;
-using UnityEngine.UI;
-using JetBrains.Annotations;
-using Unity.Collections.LowLevel.Unsafe;
-using UnityEditor.TerrainTools;
-using Unity.VisualScripting;
 
 public class ItemCreator : EditorWindow
 {
