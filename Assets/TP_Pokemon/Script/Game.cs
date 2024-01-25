@@ -5,40 +5,44 @@ using Random = UnityEngine.Random;
 
 public class Game : MonoBehaviour
 {
-    int defaultSeed;
+    private int defaultSeed;
 
-    int seed = 0;
+    private int seed = 0;
+
     public string Seed { get => seed.ToString(); set => seed = int.Parse(value); }
 
+    public List<Human> players = new List<Human>();
+    public List<Pokemon> possiblePokemons = new List<Pokemon>();
 
-    [SerializeField] List<Human> Players = new List<Human>(3);
-    [SerializeField] List<Pokemon> possiblePokemons = new List<Pokemon>(3);
+    [SerializeField] public Human Opponent1 { get; private set; }
 
-    [SerializeField] public Human opponent1 { get; private set; }
-    [SerializeField] public Human opponent2 { get; private set; }
+    [SerializeField] public Human Opponent2 { get; private set; }
+
+    IHealer currentHealer;
 
     bool isGameStarted = false;
     bool isBattleStarted = false;
     bool isGameEnded = false;
 
-    //Fight Variables
+    // Fight Variables
     public int TurnIndex { get; private set; } = 1;
 
-    public Pokemon oponent1CurrentPokemon { get; private set; }
-    public Pokemon oponent2CurrentPokemon { get; private set; }
+    public Pokemon Oponent1CurrentPokemon { get; private set; }
+
+    public Pokemon Oponent2CurrentPokemon { get; private set; }
 
     public event Action OnTurnChange;
 
-    //Add all the pokemons and players to the list, it is not automatic because we can add more pokemons and players later
+    // Add all the Pokemons and players to the list, it is not automatic because we can add more Pokemons and players later
     private void Start()
     {
         possiblePokemons.Add(gameObject.AddComponent<Salameche>());
         possiblePokemons.Add(gameObject.AddComponent<Bulbizarre>());
         possiblePokemons.Add(gameObject.AddComponent<Carapuce>());
 
-        Players.Add(gameObject.AddComponent<Sasha>());
-        Players.Add(gameObject.AddComponent<Ondine>());
-        Players.Add(gameObject.AddComponent<Pierre>());
+        players.Add(gameObject.AddComponent<Sasha>());
+        players.Add(gameObject.AddComponent<Ondine>());
+        players.Add(gameObject.AddComponent<Pierre>());
     }
 
     /// <summary>
@@ -48,26 +52,33 @@ public class Game : MonoBehaviour
     /// <param name="_seed"></param>
     public void InitGame()
     {
-        if (isGameStarted || isGameEnded) return;
+        if (isGameStarted || isGameEnded)
+        {
+            return;
+        }
 
         isGameStarted = true;
         defaultSeed = System.DateTime.Now.Millisecond;
 
-        //Setting up the seed
-        if (seed == 0) { seed = defaultSeed; }
+        // Setting up the seed
+        if (seed == 0)
+        {
+            seed = defaultSeed;
+        }
         Random.InitState(seed);
         Debug.Log($"La partie commence sur le terrain {seed}");
 
-        //Setting up the player's pokemons
-        for (int i = 0; i < Players.Count; i++)
+        // Setting up the player's Pokemons
+        for (int i = 0; i < players.Count; i++)
         {
-            Human _currentPlayer = Players[i];
-            switch (_currentPlayer.characterType)
+            Human _currentPlayer = players[i];
+            switch (_currentPlayer.CharacterType)
             {
-                //If the player is a healer, he doesn't have pokemons
+                // If the player is a healer, he doesn't have Pokemons
                 case "Healer":
-                    Debug.Log($"{_currentPlayer.characterName} est un soigneur et ne possède pas de pokemons");
-                    _currentPlayer.gameScript = this;
+                    Debug.Log($"{_currentPlayer.CharacterName} est un soigneur et ne possède pas de Pokemons");
+                    currentHealer = (IHealer)_currentPlayer;
+                    _currentPlayer.GameScript = this;
                     break;
                 default:
                     Pokemon _pokemon1 = possiblePokemons[Random.Range(0, possiblePokemons.Count)];
@@ -83,7 +94,7 @@ public class Game : MonoBehaviour
                             _currentPlayer.CatchPokemon(gameObject.AddComponent<Carapuce>());
                             break;
                         default:
-                            Debug.Log($"Erreur dans l'ajout des pokemons aux dresseurs");
+                            Debug.Log($"Erreur dans l'ajout des Pokemons aux dresseurs");
                             return;
                     }
 
@@ -100,11 +111,11 @@ public class Game : MonoBehaviour
                             _currentPlayer.CatchPokemon(gameObject.AddComponent<Carapuce>());
                             break;
                         default:
-                            Debug.Log($"Erreur dans l'ajout des pokemons aux dresseurs");
+                            Debug.Log($"Erreur dans l'ajout des Pokemons aux dresseurs");
                             return;
                     }
 
-                    Debug.Log($"{_currentPlayer.characterName} possède {_currentPlayer.pokemons.Count} pokemons, un {_pokemon1.PokemonName} et un {_pokemon2.PokemonName}");
+                    Debug.Log($"{_currentPlayer.CharacterName} possède {_currentPlayer.Pokemons.Count} Pokemons, un {_pokemon1.PokemonName} et un {_pokemon2.PokemonName}");
                     break;
             }
         }
@@ -115,17 +126,22 @@ public class Game : MonoBehaviour
     /// </summary>
     public void SetOpponents1()
     {
-        if (!isGameStarted || isGameEnded) { return; }
-        Human _temporaryOpponent = Players[Random.Range(0, Players.Count)];
-        //If the opponent is a healer or if it is the same as the second opponent, we choose another one
-        if (_temporaryOpponent.characterType == "Healer" || _temporaryOpponent == opponent2)
+        if (!isGameStarted || isBattleStarted || isGameEnded)
+        {
+            return;
+        }
+
+        Human _temporaryOpponent = players[Random.Range(0, players.Count)];
+
+        // If the opponent is a healer or if it is the same as the second opponent, we choose another one
+        if (_temporaryOpponent.CharacterType == "Healer" || _temporaryOpponent == Opponent2)
         {
             SetOpponents1();
         }
         else
         {
-            opponent1 = _temporaryOpponent;
-            Debug.Log($"L'adversaire 1 est {opponent1.characterName}");
+            Opponent1 = _temporaryOpponent;
+            Debug.Log($"L'adversaire 1 est {Opponent1.CharacterName}");
         }
     }
 
@@ -134,17 +150,22 @@ public class Game : MonoBehaviour
     /// </summary>
     public void SetOpponents2()
     {
-        if (!isGameStarted || isGameEnded) { return; }
-        Human _temporaryOpponent = Players[Random.Range(0, Players.Count)];
-        //If the opponent is a healer or if it is the same as the second opponent, we choose another one
-        if (_temporaryOpponent.characterType == "Healer" || _temporaryOpponent == opponent1)
+        if (!isGameStarted || isBattleStarted || isGameEnded)
+        {
+            return;
+        }
+
+        Human _temporaryOpponent = players[Random.Range(0, players.Count)];
+
+        // If the opponent is a healer or if it is the same as the second opponent, we choose another one
+        if (_temporaryOpponent.CharacterType == "Healer" || _temporaryOpponent == Opponent1)
         {
             SetOpponents2();
         }
         else
         {
-            opponent2 = _temporaryOpponent;
-            Debug.Log($"L'adversaire 2 est {opponent2.characterName}");
+            Opponent2 = _temporaryOpponent;
+            Debug.Log($"L'adversaire 2 est {Opponent2.CharacterName}");
         }
     }
 
@@ -155,7 +176,10 @@ public class Game : MonoBehaviour
     /// <param name="_opponent2"></param>
     public void StartBattle()
     {
-        if (isGameEnded) { return; }
+        if (isGameEnded)
+        {
+            return;
+        }
 
         if (!isGameStarted || isBattleStarted)
         {
@@ -163,24 +187,27 @@ public class Game : MonoBehaviour
             return;
         }
 
-        if (opponent1 == null || opponent2 == null)
+        if (Opponent1 == null || Opponent2 == null)
         {
             Debug.Log("Il faut deux adversaires pour commencer un combat");
             return;
         }
 
-        if (isGameEnded) { return; }
+        if (isGameEnded)
+        {
+            return;
+        }
         isBattleStarted = true;
-        Debug.Log($"Début du combat entre {opponent1.characterName} et {opponent2.characterName}");
+        Debug.Log($"Début du combat entre {Opponent1.CharacterName} et {Opponent2.CharacterName}");
 
-        //Set the active pokemon for each opponent
-        oponent1CurrentPokemon = opponent1.pokemons[0];
-        Debug.Log($"{opponent1.characterName} envoie son {oponent1CurrentPokemon.PokemonName}");
-        oponent1CurrentPokemon.GetOutPokeball();
+        // Set the active pokemon for each opponent
+        Oponent1CurrentPokemon = Opponent1.Pokemons[0];
+        Debug.Log($"{Opponent1.CharacterName} envoie son {Oponent1CurrentPokemon.PokemonName}");
+        Oponent1CurrentPokemon.GetOutPokeball();
 
-        oponent2CurrentPokemon = opponent2.pokemons[0];
-        Debug.Log($"{opponent2.characterName} envoie son {oponent2CurrentPokemon.PokemonName}");
-        oponent2CurrentPokemon.GetOutPokeball();
+        Oponent2CurrentPokemon = Opponent2.Pokemons[0];
+        Debug.Log($"{Opponent2.CharacterName} envoie son {Oponent2CurrentPokemon.PokemonName}");
+        Oponent2CurrentPokemon.GetOutPokeball();
 
         EndTurn();
     }
@@ -190,9 +217,12 @@ public class Game : MonoBehaviour
     /// </summary>
     public void PlayerAttackTackle()
     {
-        if (isGameEnded) { return; }
+        if (isGameEnded)
+        {
+            return;
+        }
 
-        //Checks if the battle has started
+        // Checks if the battle has started
         if (!isBattleStarted)
         {
             Debug.Log("On ne peut pas attaquer");
@@ -204,33 +234,36 @@ public class Game : MonoBehaviour
         Human _targetMaster;
         Pokemon _target;
 
-        //Set wich player will attack with wich pokemon
+        // Set wich player will attack with wich pokemon
         switch (TurnIndex % 2)
         {
             case 0:
-                _currentOpponent = opponent1;
-                _currentOpponentPokemon = oponent1CurrentPokemon;
-                _targetMaster = opponent2;
-                _target = oponent2CurrentPokemon;
+                _currentOpponent = Opponent1;
+                _currentOpponentPokemon = Oponent1CurrentPokemon;
+                _targetMaster = Opponent2;
+                _target = Oponent2CurrentPokemon;
                 break;
             case 1:
-                _currentOpponent = opponent2;
-                _currentOpponentPokemon = oponent2CurrentPokemon;
-                _targetMaster = opponent1;
-                _target = oponent1CurrentPokemon;
+                _currentOpponent = Opponent2;
+                _currentOpponentPokemon = Oponent2CurrentPokemon;
+                _targetMaster = Opponent1;
+                _target = Oponent1CurrentPokemon;
                 break;
             default:
                 return;
         }
 
-        //Launch the attack if the pokemon is not in his pokeball
-        if (!_currentOpponentPokemon.isInPokeball)
+        // Launch the attack if the pokemon is not in his pokeball
+        if (!_currentOpponentPokemon.IsInPokeball)
         {
-            Debug.Log($"{_currentOpponent.characterName} attaque avec {_currentOpponentPokemon.PokemonName}");
+            Debug.Log($"{_currentOpponent.CharacterName} attaque avec {_currentOpponentPokemon.PokemonName}");
             _currentOpponentPokemon.Takle(_target);
             CheckKOPokemon(_target, _targetMaster);
 
-            if (_targetMaster.NumberofPokemonsKO >= 2) { return; }
+            if (_targetMaster.NumberofPokemonsKO >= 2)
+            {
+                return;
+            }
 
             EndTurn();
             return;
@@ -244,9 +277,12 @@ public class Game : MonoBehaviour
     /// </summary>
     public void PlayerAbilityAttack()
     {
-        if (isGameEnded) { return; }
+        if (isGameEnded)
+        {
+            return;
+        }
 
-        //Checks if the battle has started
+        // Checks if the battle has started
         if (!isBattleStarted)
         {
             Debug.Log("On ne peut pas utiliser de capacité");
@@ -258,33 +294,36 @@ public class Game : MonoBehaviour
         Human _targetMaster;
         Pokemon _target;
 
-        //Set wich player will attack with wich pokemon
+        // Set wich player will attack with wich pokemon
         switch (TurnIndex % 2)
         {
             case 0:
-                _currentOpponent = opponent1;
-                _currentOpponentPokemon = oponent1CurrentPokemon;
-                _targetMaster = opponent2;
-                _target = oponent2CurrentPokemon;
+                _currentOpponent = Opponent1;
+                _currentOpponentPokemon = Oponent1CurrentPokemon;
+                _targetMaster = Opponent2;
+                _target = Oponent2CurrentPokemon;
                 break;
             case 1:
-                _currentOpponent = opponent2;
-                _currentOpponentPokemon = oponent2CurrentPokemon;
-                _targetMaster = opponent1;
-                _target = oponent1CurrentPokemon;
+                _currentOpponent = Opponent2;
+                _currentOpponentPokemon = Oponent2CurrentPokemon;
+                _targetMaster = Opponent1;
+                _target = Oponent1CurrentPokemon;
                 break;
             default:
                 return;
         }
 
-        //Launch the ability if the pokemon is not in his pokeball
-        if (!_currentOpponentPokemon.isInPokeball)
+        // Launch the ability if the pokemon is not in his pokeball
+        if (!_currentOpponentPokemon.IsInPokeball)
         {
-            Debug.Log($"{_currentOpponent.characterName} utilise la capacité de {_currentOpponentPokemon.PokemonName}");
+            Debug.Log($"{_currentOpponent.CharacterName} utilise la capacité de {_currentOpponentPokemon.PokemonName}");
             _currentOpponentPokemon.Ability(_target);
             CheckKOPokemon(_target, _targetMaster);
 
-            if (_targetMaster.NumberofPokemonsKO >= 2) { return; }
+            if (_targetMaster.NumberofPokemonsKO >= 2)
+            {
+                return;
+            }
 
             EndTurn();
             return;
@@ -298,10 +337,13 @@ public class Game : MonoBehaviour
     /// </summary>
     public void SwitchPokemon()
     {
-        if (isGameEnded) { return; }
+        if (isGameEnded)
+        {
+            return;
+        }
 
-        //Checks if the battle has started or if it is the end of the game
-        if (!isBattleStarted )
+        // Checks if the battle has started or if it is the end of the game
+        if (!isBattleStarted)
         {
             Debug.Log("On ne peut pas faire de changement de pokemon");
             return;
@@ -316,46 +358,45 @@ public class Game : MonoBehaviour
         switch (TurnIndex % 2)
         {
             case 0:
-                _currentOpponent = opponent1;
-                _currentOpponentPokemon = oponent1CurrentPokemon;
+                _currentOpponent = Opponent1;
+                _currentOpponentPokemon = Oponent1CurrentPokemon;
                 _playerTurn = 0;
                 break;
             case 1:
-                _currentOpponent = opponent2;
-                _currentOpponentPokemon = oponent2CurrentPokemon;
+                _currentOpponent = Opponent2;
+                _currentOpponentPokemon = Oponent2CurrentPokemon;
                 _playerTurn = 1;
                 break;
             default:
                 return;
         }
 
-        _temp.AddRange(_currentOpponent.pokemons);
+        _temp.AddRange(_currentOpponent.Pokemons);
         _temp.Remove(_currentOpponentPokemon);
         _newPokemon = _temp[0];
 
-
-        //Checks if the other pokemon is dead
-        if (_newPokemon.pv <= 0)
+        // Checks if the other pokemon is dead
+        if (_newPokemon.Pv <= 0)
         {
             Debug.Log($"{_newPokemon.PokemonName} est KO, impossible de le changer");
             return;
         }
 
-        Debug.Log($"{_currentOpponent.characterName} change de pokemon et rappelle son {_currentOpponentPokemon.PokemonName}");
+        Debug.Log($"{_currentOpponent.CharacterName} change de pokemon et rappelle son {_currentOpponentPokemon.PokemonName}");
         _currentOpponentPokemon.GetInPokeball();
 
         _currentOpponentPokemon = _newPokemon;
 
-        Debug.Log($"{_currentOpponent.characterName} envoie son {_currentOpponentPokemon.PokemonName}");
+        Debug.Log($"{_currentOpponent.CharacterName} envoie son {_currentOpponentPokemon.PokemonName}");
         _currentOpponentPokemon.GetOutPokeball();
 
         switch (_playerTurn)
         {
             case 0:
-                oponent1CurrentPokemon = _currentOpponentPokemon;
+                Oponent1CurrentPokemon = _currentOpponentPokemon;
                 break;
             case 1:
-                oponent2CurrentPokemon = _currentOpponentPokemon;
+                Oponent2CurrentPokemon = _currentOpponentPokemon;
                 break;
             default:
                 Debug.Log("Erreur dans le changement de pokemon");
@@ -366,15 +407,98 @@ public class Game : MonoBehaviour
     }
 
     /// <summary>
+    /// Launch the healOne method of the Healer.
+    /// </summary>
+    public void HealOne()
+    {
+        if (isGameEnded || !isGameStarted)
+        {
+            return;
+        }
+
+        Pokemon _currentPlayerPokemon;
+        Human _currentPlayerPokemonMaster;
+
+        // Checks wich player is playing
+        switch (TurnIndex % 2)
+        {
+            case 0:
+                _currentPlayerPokemon = Oponent1CurrentPokemon;
+                _currentPlayerPokemonMaster = Opponent1;
+                break;
+
+            case 1:
+                _currentPlayerPokemon = Oponent2CurrentPokemon;
+                _currentPlayerPokemonMaster = Opponent2;
+                break;
+
+            default:
+                return;
+        }
+
+        if (_currentPlayerPokemon.Pv <= 0)
+        {
+            Debug.Log($"{_currentPlayerPokemon.PokemonName} est KO, et ne peut être soigné. {_currentPlayerPokemonMaster.CharacterName} doit changer de pokemon");
+            return;
+        }
+
+        currentHealer.HealOne(_currentPlayerPokemon);
+        EndTurn();
+    }
+
+    /// <summary>
+    /// Launch the healAll method of the Healer.
+    /// </summary>
+    public void HealAll()
+    {
+        if (isGameEnded || !isGameStarted)
+        {
+            return;
+        }
+
+        Pokemon _currentPlayerPokemon;
+        Human _currentPlayerPokemonMaster;
+
+        // Checks wich player is playing
+        switch (TurnIndex % 2)
+        {
+            case 0:
+                _currentPlayerPokemon = Oponent1CurrentPokemon;
+                _currentPlayerPokemonMaster = Opponent1;
+                break;
+
+            case 1:
+                _currentPlayerPokemon = Oponent2CurrentPokemon;
+                _currentPlayerPokemonMaster = Opponent2;
+                break;
+
+            default:
+                return;
+        }
+
+        if (_currentPlayerPokemon.Pv <= 0)
+        {
+            Debug.Log($"{_currentPlayerPokemon.PokemonName} est KO, et ne peut être soigné. {_currentPlayerPokemonMaster.CharacterName} doit changer de pokemon");
+            return;
+        }
+
+        currentHealer.HealAll();
+        EndTurn();
+    }
+
+    /// <summary>
     /// Checks if the pokemon is KO and if the player still have more pokemon.
     /// </summary>
     /// <param name="_target"></param>
     /// <param name="_targetMaster"></param>
-    void CheckKOPokemon(Pokemon _target, Human _targetMaster)
+    private void CheckKOPokemon(Pokemon _target, Human _targetMaster)
     {
-        if (isGameEnded) { return; }
+        if (isGameEnded)
+        {
+            return;
+        }
 
-        switch (_target.pv <= 0)
+        switch (_target.Pv <= 0)
         {
             case true:
                 _targetMaster.NumberofPokemonsKO += 1;
@@ -385,13 +509,13 @@ public class Game : MonoBehaviour
 
         if (_targetMaster.NumberofPokemonsKO >= 2)
         {
-            if (_targetMaster == opponent1)
+            if (_targetMaster == Opponent1)
             {
-                EndBattle(opponent2);
+                EndBattle(Opponent2);
             }
             else
             {
-                EndBattle(opponent1);
+                EndBattle(Opponent1);
             }
         }
     }
@@ -399,9 +523,12 @@ public class Game : MonoBehaviour
     /// <summary>
     /// End the turn, trigger the event OnTurnChange and increment the turn index.
     /// </summary>
-    void EndTurn()
+    private void EndTurn()
     {
-        if (isGameEnded) { return; }
+        if (isGameEnded)
+        {
+            return;
+        }
 
         TurnIndex += 1;
         OnTurnChange?.Invoke();
@@ -410,7 +537,7 @@ public class Game : MonoBehaviour
     /// <summary>
     /// End the battle and reset the turn index.
     /// </summary>
-    void EndBattle(Human _winner)
+    private void EndBattle(Human _winner)
     {
         if (!isBattleStarted)
         {
@@ -419,6 +546,6 @@ public class Game : MonoBehaviour
         }
 
         isGameEnded = true;
-        Debug.Log($"Fin du combat entre {opponent1.characterName} et {opponent2.characterName}. \n Le gagnant est {_winner.characterName} \n Merci d'avoir joué a {this.name}");
+        Debug.Log($"Fin du combat entre {Opponent1.CharacterName} et {Opponent2.CharacterName}. \n Le gagnant est {_winner.CharacterName} \n Merci d'avoir joué a {this.name}");
     }
 }

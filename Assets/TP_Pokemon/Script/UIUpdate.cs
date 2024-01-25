@@ -3,9 +3,9 @@ using UnityEngine;
 
 public class UIUpdate : MonoBehaviour
 {
-    [SerializeField] Game gameScript;
+    [SerializeField] private Game gameScript;
 
-    [SerializeField] TMP_Text TurnText;
+    [SerializeField] private TMP_Text turnText;
 
     private void Start()
     {
@@ -17,24 +17,25 @@ public class UIUpdate : MonoBehaviour
         gameScript.OnTurnChange += UpdateTurnText;
     }
 
-    void UpdateTurnText()
+    private void UpdateTurnText()
     {
         Human _temp;
         Pokemon _tempPokemon;
         switch (gameScript.TurnIndex % 2)
         {
             case 0:
-                _temp = gameScript.opponent1;
-                _tempPokemon = gameScript.oponent1CurrentPokemon;
+                _temp = gameScript.Opponent1;
+                _tempPokemon = gameScript.Oponent1CurrentPokemon;
                 break;
             case 1:
-                _temp = gameScript.opponent2;
-                _tempPokemon = gameScript.oponent2CurrentPokemon;
+                _temp = gameScript.Opponent2;
+                _tempPokemon = gameScript.Oponent2CurrentPokemon;
                 break;
             default:
                 return;
         }
-        TurnText.text = $"c'est au tour de {_temp.characterName} et de son {_tempPokemon.PokemonName}";
-        Debug.Log($"c'est au tour de {_temp.characterName} et de son {_tempPokemon.PokemonName}");
+
+        turnText.text = $"C'est au tour de {_temp.CharacterName} et de son {_tempPokemon.PokemonName}";
+        Debug.Log($"C'est au tour de {_temp.CharacterName} et de son {_tempPokemon.PokemonName}");
     }
 }

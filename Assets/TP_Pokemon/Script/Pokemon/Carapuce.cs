@@ -1,11 +1,12 @@
 ﻿using UnityEngine;
+
 public class Carapuce : Pokemon
 {
-
-    void Start()
+    private void Start()
     {
         PokemonName = "Carapuce";
-        pv = 100;
+        Pv = 100;
+        MaxPv = 100;
         attack = 50;
         defense = 60;
         speed = 50;
@@ -19,9 +20,9 @@ public class Carapuce : Pokemon
         PistoletAO(_target);
     }
 
-    void PistoletAO(Pokemon _target)
+    private void PistoletAO(Pokemon _target)
     {
-        if (!isInPokeball)
+        if (!IsInPokeball)
         {
             Debug.Log($"{PokemonName} utilise Pistoler à O");
             float _baseDamage = attack * 0.9f;

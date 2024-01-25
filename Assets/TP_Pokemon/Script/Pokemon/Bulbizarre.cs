@@ -1,11 +1,12 @@
 ﻿using UnityEngine;
+
 public class Bulbizarre : Pokemon
 {
-
-    void Start()
+    private void Start()
     {
         PokemonName = "Bulbizarre";
-        pv = 120;
+        Pv = 120;
+        MaxPv = 120;
         attack = 40;
         defense = 60;
         speed = 30;
@@ -16,24 +17,15 @@ public class Bulbizarre : Pokemon
 
     public override void Ability(Pokemon _target)
     {
-        soin();
+        Soin();
     }
 
-    public void soin()
+    public void Soin()
     {
-        if (!isInPokeball)
+        if (!IsInPokeball)
         {
-            switch (pv)
-            {
-                case > 90:
-                    pv = 120;
-                    Debug.Log($"{PokemonName} s'est soigné et a maintenant {pv}PV");
-                    break;
-                default:
-                    pv += 30;
-                    Debug.Log($"{PokemonName} s'est soigné et a maintenant {pv}PV");
-                    break;
-            }
+            Debug.Log($"{PokemonName} utilise Soin");
+            Heal(30);
             return;
         }
 
@@ -42,11 +34,12 @@ public class Bulbizarre : Pokemon
 
     public void FouetLianes(Pokemon _target)
     {
-        if (!isInPokeball)
+        if (!IsInPokeball)
         {
             float _baseDamage = attack * 0.8f;
             _target.TakeDamage(_baseDamage, "Grass");
         }
+
         Debug.Log($"{PokemonName} ne peut rien faire, il est dans sa pokeball");
     }
 }

@@ -1,11 +1,12 @@
 ﻿using UnityEngine;
+
 public class Salameche : Pokemon
 {
-
-    void Start()
+    private void Start()
     {
         PokemonName = "Salameche";
-        pv = 100;
+        Pv = 100;
+        MaxPv = 100;
         attack = 60;
         defense = 40;
         speed = 60;
@@ -18,9 +19,10 @@ public class Salameche : Pokemon
     {
         Flameche(_target);
     }
+
     public void Flameche(Pokemon _target)
     {
-        if (!isInPokeball)
+        if (!IsInPokeball)
         {
             Debug.Log($"{PokemonName} utilise Flameche");
             float _baseDamage = attack * 1f;
@@ -30,5 +32,4 @@ public class Salameche : Pokemon
 
         Debug.Log($"{PokemonName} ne peut rien faire, il est dans sa pokeball");
     }
-
 }

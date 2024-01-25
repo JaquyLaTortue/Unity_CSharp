@@ -3,24 +3,30 @@
 public abstract class Pokemon : MonoBehaviour
 {
     public string PokemonName { get; protected set; }
-    public float pv { get; protected set; }
+
+    public float Pv { get; protected set; }
+
+    public float MaxPv { get; protected set; }
+
     protected int attack;
     protected int defense;
     protected int speed;
-    public bool isInPokeball { get; protected set; } = true;
+
+    public bool IsInPokeball { get; protected set; } = true;
 
     public string Type { get; protected set; }
+
     protected string typeAdvantage;
     protected string typeDisadvantage;
 
     public void Takle(Pokemon _target)
     {
-        if (!isInPokeball)
+        if (!IsInPokeball)
         {
             float baseDamage = attack * 0.2f;
             Debug.Log($"{PokemonName} attaque Charge");
 
-            _target.TakeDamage(baseDamage,"Normal") ;
+            _target.TakeDamage(baseDamage, "Normal");
         }
     }
 
@@ -37,9 +43,10 @@ public abstract class Pokemon : MonoBehaviour
     /// <param name="_attackType"></param>
     public void TakeDamage(float _damage, string _attackType)
     {
-        if (!isInPokeball)
+        if (!IsInPokeball)
         {
             float _finalDamage;
+
             if (_attackType == typeDisadvantage)
             {
                 _finalDamage = _damage * 2f;
@@ -53,16 +60,18 @@ public abstract class Pokemon : MonoBehaviour
                 _finalDamage = _damage;
             }
 
-            pv -= _finalDamage;
-            Debug.Log($"{PokemonName} a subis {_finalDamage} dégâts et a maintenant {pv}PV");
+            Pv -= _finalDamage;
+            Debug.Log($"{PokemonName} a subis {_finalDamage} dégâts et a maintenant {Pv}PV");
 
-            if (pv <= 0)
+            if (Pv <= 0)
             {
                 Debug.Log($"{PokemonName} est KO, il rentre dans sa pokeball");
                 GetInPokeball();
             }
+
             return;
         }
+
         Debug.Log($"{PokemonName} ne peut pas prendre de dégâts, il est dans sa pokeball");
     }
 
@@ -71,13 +80,14 @@ public abstract class Pokemon : MonoBehaviour
     /// </summary>
     public void GetOutPokeball()
     {
-        if (pv <= 0)
+        if (Pv <= 0)
         {
             Debug.Log($"{PokemonName} ne peut pas sortir de sa pokeball, il est KO");
             return;
         }
-        Debug.Log($"{PokemonName} sort de sa pokeball et a {pv}PV");
-        isInPokeball = false;
+
+        Debug.Log($"{PokemonName} sort de sa pokeball et a {Pv}PV");
+        IsInPokeball = false;
     }
 
     /// <summary>
@@ -86,6 +96,23 @@ public abstract class Pokemon : MonoBehaviour
     public void GetInPokeball()
     {
         Debug.Log($"{PokemonName} rentre dans sa pokeball");
-        isInPokeball = true;
+        IsInPokeball = true;
+    }
+
+    public void Heal(int value)
+    {
+        if (Pv <= 0)
+        {
+            Debug.Log($"{PokemonName} ne peut pas être soigné, il est KO");
+            return;
+        }
+
+        Pv += value;
+        if (Pv > MaxPv)
+        {
+            Pv = MaxPv;
+        }
+
+        Debug.Log($"{PokemonName} a été soigné et a maintenant {Pv}PV");
     }
 }

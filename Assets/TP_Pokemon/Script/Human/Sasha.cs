@@ -2,6 +2,6 @@
 {
     private void Start()
     {
-        characterName = "Sasha";
+        CharacterName = "Sasha";
     }
 }

@@ -3,19 +3,21 @@ using UnityEngine;
 
 public abstract class Human : MonoBehaviour
 {
-    public Game gameScript { get; set;}
-    public string characterName { get; protected set; }
-    public string characterType { get; protected set; }
-
     /// <summary>
-    /// A Human cannot have more than 2 pokemons
+    /// A Human cannot have more than 2 Pokemons
     /// </summary>
-    [field: SerializeField] public List<Pokemon> pokemons { get; private set; } = new List<Pokemon>(2);
+    public List<Pokemon> Pokemons { get; private set; } = new List<Pokemon>(2);
+
+    public Game GameScript { get; set; }
+
+    public string CharacterName { get; protected set; }
+
+    public string CharacterType { get; protected set; }
 
     public int NumberofPokemonsKO = 0;
 
     public void CatchPokemon(Pokemon _pokemon)
     {
-        pokemons.Add(_pokemon);
+        Pokemons.Add(_pokemon);
     }
 }
