@@ -1,5 +1,5 @@
 ﻿
-public abstract class Healer : Human
+public interface  IHealer
 {
     /// <summary>
     /// Each healer have to set the characterType to "Healer" in the Start() method and have the gameScript Referenced.

@@ -1,18 +1,16 @@
-﻿using UnityEngine;
-
-public class Pierre : Healer
+﻿public class Pierre : Human, IHealer
 {
-    public override void SetUpHealerValues()
+    public  void SetUpHealerValues()
     {
         characterType = "Healer";
     }
 
-    public override void HealAll()
+    public  void HealAll()
     {
         throw new System.NotImplementedException();
     }
 
-    public override void HealOne()
+    public  void HealOne()
     {
         throw new System.NotImplementedException();
     }
@@ -21,6 +19,6 @@ public class Pierre : Healer
     private void Start()
     {
         characterName = "Pierre";
-        Debug.Log(characterType);
+        SetUpHealerValues();
     }
 }

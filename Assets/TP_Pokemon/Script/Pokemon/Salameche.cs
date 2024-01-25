@@ -12,7 +12,6 @@ public class Salameche : Pokemon
         Type = "Fire";
         typeAdvantage = "Grass";
         typeDisadvantage = "Water";
-
     }
 
     public override void Ability(Pokemon _target)
@@ -23,9 +22,12 @@ public class Salameche : Pokemon
     {
         if (!isInPokeball)
         {
+            Debug.Log($"{PokemonName} utilise Flameche");
             float _baseDamage = attack * 1f;
             _target.TakeDamage(_baseDamage, "Fire");
+            return;
         }
+
         Debug.Log($"{PokemonName} ne peut rien faire, il est dans sa pokeball");
     }
 

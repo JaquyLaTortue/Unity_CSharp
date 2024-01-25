@@ -27,12 +27,16 @@ public class Bulbizarre : Pokemon
             {
                 case > 90:
                     pv = 120;
+                    Debug.Log($"{PokemonName} s'est soigné et a maintenant {pv}PV");
                     break;
                 default:
                     pv += 30;
+                    Debug.Log($"{PokemonName} s'est soigné et a maintenant {pv}PV");
                     break;
             }
+            return;
         }
+
         Debug.Log($"{PokemonName} ne peut rien faire, il est dans sa pokeball");
     }
 

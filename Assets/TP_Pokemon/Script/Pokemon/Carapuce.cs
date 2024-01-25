@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-
 public class Carapuce : Pokemon
 {
 
@@ -24,10 +23,12 @@ public class Carapuce : Pokemon
     {
         if (!isInPokeball)
         {
-        Debug.Log($"{PokemonName} utilise Pistoler à O");
+            Debug.Log($"{PokemonName} utilise Pistoler à O");
             float _baseDamage = attack * 0.9f;
             _target.TakeDamage(_baseDamage, "Water");
+            return;
         }
+
         Debug.Log($"{PokemonName} ne peut rien faire, il est dans sa pokeball");
     }
 }

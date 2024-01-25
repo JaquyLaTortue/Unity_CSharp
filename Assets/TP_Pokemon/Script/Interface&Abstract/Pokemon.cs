@@ -3,7 +3,7 @@
 public abstract class Pokemon : MonoBehaviour
 {
     public string PokemonName { get; protected set; }
-    protected float pv;
+    public float pv { get; protected set; }
     protected int attack;
     protected int defense;
     protected int speed;
@@ -15,11 +15,19 @@ public abstract class Pokemon : MonoBehaviour
 
     public void Takle(Pokemon _target)
     {
-        Debug.Log($"{PokemonName} attaque Charge");
-        _target.pv -= attack * 0.2f;
+        if (!isInPokeball)
+        {
+            float baseDamage = attack * 0.2f;
+            Debug.Log($"{PokemonName} attaque Charge");
+
+            _target.TakeDamage(baseDamage,"Normal") ;
+        }
     }
 
-    //For each pokemon, Launch his ability
+    /// <summary>
+    /// For each pokemon, Launch his ability
+    /// </summary>
+    /// <param name="_target"></param>
     public abstract void Ability(Pokemon _target);
 
     /// <summary>
@@ -31,18 +39,29 @@ public abstract class Pokemon : MonoBehaviour
     {
         if (!isInPokeball)
         {
+            float _finalDamage;
             if (_attackType == typeDisadvantage)
             {
-                pv -= _damage * 2f;
+                _finalDamage = _damage * 2f;
             }
             else if (_attackType == typeAdvantage)
             {
-                pv -= _damage * 0.5f;
+                _finalDamage = _damage * 0.5f;
             }
             else
             {
-                pv -= _damage;
+                _finalDamage = _damage;
             }
+
+            pv -= _finalDamage;
+            Debug.Log($"{PokemonName} a subis {_finalDamage} dégâts et a maintenant {pv}PV");
+
+            if (pv <= 0)
+            {
+                Debug.Log($"{PokemonName} est KO, il rentre dans sa pokeball");
+                GetInPokeball();
+            }
+            return;
         }
         Debug.Log($"{PokemonName} ne peut pas prendre de dégâts, il est dans sa pokeball");
     }
@@ -50,10 +69,23 @@ public abstract class Pokemon : MonoBehaviour
     /// <summary>
     /// The pokemon get out of his pokeball and can be use in the battle
     /// </summary>
-    public void GetOutPokeball() { isInPokeball = false; }
+    public void GetOutPokeball()
+    {
+        if (pv <= 0)
+        {
+            Debug.Log($"{PokemonName} ne peut pas sortir de sa pokeball, il est KO");
+            return;
+        }
+        Debug.Log($"{PokemonName} sort de sa pokeball et a {pv}PV");
+        isInPokeball = false;
+    }
 
     /// <summary>
     /// The pokemon get in his pokeball and can't be use in the battle
     /// </summary>
-    public void GetInPokeball() { isInPokeball = true; }
+    public void GetInPokeball()
+    {
+        Debug.Log($"{PokemonName} rentre dans sa pokeball");
+        isInPokeball = true;
+    }
 }
