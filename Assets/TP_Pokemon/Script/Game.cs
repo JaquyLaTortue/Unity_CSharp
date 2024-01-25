@@ -11,18 +11,18 @@ public class Game : MonoBehaviour
 
     public string Seed { get => seed.ToString(); set => seed = int.Parse(value); }
 
-    public List<Human> players = new List<Human>();
-    public List<Pokemon> possiblePokemons = new List<Pokemon>();
+    public List<Human> Players = new List<Human>();
+    public List<Pokemon> PossiblePokemons = new List<Pokemon>();
 
     [SerializeField] public Human Opponent1 { get; private set; }
 
     [SerializeField] public Human Opponent2 { get; private set; }
 
-    IHealer currentHealer;
+    private IHealer currentHealer;
 
-    bool isGameStarted = false;
-    bool isBattleStarted = false;
-    bool isGameEnded = false;
+    private bool isGameStarted = false;
+    private bool isBattleStarted = false;
+    private bool isGameEnded = false;
 
     // Fight Variables
     public int TurnIndex { get; private set; } = 1;
@@ -33,16 +33,19 @@ public class Game : MonoBehaviour
 
     public event Action OnTurnChange;
 
-    // Add all the Pokemons and players to the list, it is not automatic because we can add more Pokemons and players later
+    // Add all the Pokemons and Players to the list, it is not automatic because we can add more Pokemons and Players later
     private void Start()
     {
-        possiblePokemons.Add(gameObject.AddComponent<Salameche>());
-        possiblePokemons.Add(gameObject.AddComponent<Bulbizarre>());
-        possiblePokemons.Add(gameObject.AddComponent<Carapuce>());
+        PossiblePokemons.Add(gameObject.AddComponent<Salameche>());
+        PossiblePokemons.Add(gameObject.AddComponent<Bulbizarre>());
+        PossiblePokemons.Add(gameObject.AddComponent<Carapuce>());
+        PossiblePokemons.Add(gameObject.AddComponent<Tortipouss>());
+        PossiblePokemons.Add(gameObject.AddComponent<Tiplouf>());
 
-        players.Add(gameObject.AddComponent<Sasha>());
-        players.Add(gameObject.AddComponent<Ondine>());
-        players.Add(gameObject.AddComponent<Pierre>());
+        Players.Add(gameObject.AddComponent<Sasha>());
+        Players.Add(gameObject.AddComponent<Ondine>());
+        Players.Add(gameObject.AddComponent<Pierre>());
+        Players.Add(gameObject.AddComponent<Cynthia>());
     }
 
     /// <summary>
@@ -65,13 +68,14 @@ public class Game : MonoBehaviour
         {
             seed = defaultSeed;
         }
+
         Random.InitState(seed);
         Debug.Log($"La partie commence sur le terrain {seed}");
 
         // Setting up the player's Pokemons
-        for (int i = 0; i < players.Count; i++)
+        for (int i = 0; i < Players.Count; i++)
         {
-            Human _currentPlayer = players[i];
+            Human _currentPlayer = Players[i];
             switch (_currentPlayer.CharacterType)
             {
                 // If the player is a healer, he doesn't have Pokemons
@@ -81,43 +85,46 @@ public class Game : MonoBehaviour
                     _currentPlayer.GameScript = this;
                     break;
                 default:
-                    Pokemon _pokemon1 = possiblePokemons[Random.Range(0, possiblePokemons.Count)];
-                    switch (_pokemon1.PokemonName)
-                    {
-                        case "Bulbizarre":
-                            _currentPlayer.CatchPokemon(gameObject.AddComponent<Bulbizarre>());
-                            break;
-                        case "Salameche":
-                            _currentPlayer.CatchPokemon(gameObject.AddComponent<Salameche>());
-                            break;
-                        case "Carapuce":
-                            _currentPlayer.CatchPokemon(gameObject.AddComponent<Carapuce>());
-                            break;
-                        default:
-                            Debug.Log($"Erreur dans l'ajout des Pokemons aux dresseurs");
-                            return;
-                    }
+                    Pokemon _pokemon1 = PossiblePokemons[Random.Range(0, PossiblePokemons.Count)];
+                    SetPokemon(_pokemon1, _currentPlayer);
 
-                    Pokemon _pokemon2 = possiblePokemons[Random.Range(0, possiblePokemons.Count)];
-                    switch (_pokemon2.PokemonName)
-                    {
-                        case "Bulbizarre":
-                            _currentPlayer.CatchPokemon(gameObject.AddComponent<Bulbizarre>());
-                            break;
-                        case "Salameche":
-                            _currentPlayer.CatchPokemon(gameObject.AddComponent<Salameche>());
-                            break;
-                        case "Carapuce":
-                            _currentPlayer.CatchPokemon(gameObject.AddComponent<Carapuce>());
-                            break;
-                        default:
-                            Debug.Log($"Erreur dans l'ajout des Pokemons aux dresseurs");
-                            return;
-                    }
+                    Pokemon _pokemon2 = PossiblePokemons[Random.Range(0, PossiblePokemons.Count)];
+                    SetPokemon(_pokemon2, _currentPlayer);
 
                     Debug.Log($"{_currentPlayer.CharacterName} possède {_currentPlayer.Pokemons.Count} Pokemons, un {_pokemon1.PokemonName} et un {_pokemon2.PokemonName}");
                     break;
             }
+        }
+    }
+
+    /// <summary>
+    /// Add a pokemon to a player depending on its name. (Need to update the switch if we add more pokemons)
+    /// </summary>
+    /// <param name="_temp"></param>
+    /// <param name="_player"></param>
+    private void SetPokemon(Pokemon _temp, Human _player)
+    {
+        // Need to add the case for each possible pokemon
+        switch (_temp.PokemonName)
+        {
+            case "Bulbizarre":
+                _player.CatchPokemon(gameObject.AddComponent<Bulbizarre>());
+                break;
+            case "Salameche":
+                _player.CatchPokemon(gameObject.AddComponent<Salameche>());
+                break;
+            case "Carapuce":
+                _player.CatchPokemon(gameObject.AddComponent<Carapuce>());
+                break;
+            case "Tortipouss":
+                _player.CatchPokemon(gameObject.AddComponent<Tortipouss>());
+                break;
+            case "Tiplouf":
+                _player.CatchPokemon(gameObject.AddComponent<Tiplouf>());
+                break;
+            default:
+                Debug.Log($"Erreur dans l'ajout des Pokemons aux dresseurs");
+                return;
         }
     }
 
@@ -131,7 +138,7 @@ public class Game : MonoBehaviour
             return;
         }
 
-        Human _temporaryOpponent = players[Random.Range(0, players.Count)];
+        Human _temporaryOpponent = Players[Random.Range(0, Players.Count)];
 
         // If the opponent is a healer or if it is the same as the second opponent, we choose another one
         if (_temporaryOpponent.CharacterType == "Healer" || _temporaryOpponent == Opponent2)
@@ -155,7 +162,7 @@ public class Game : MonoBehaviour
             return;
         }
 
-        Human _temporaryOpponent = players[Random.Range(0, players.Count)];
+        Human _temporaryOpponent = Players[Random.Range(0, Players.Count)];
 
         // If the opponent is a healer or if it is the same as the second opponent, we choose another one
         if (_temporaryOpponent.CharacterType == "Healer" || _temporaryOpponent == Opponent1)
@@ -197,6 +204,7 @@ public class Game : MonoBehaviour
         {
             return;
         }
+
         isBattleStarted = true;
         Debug.Log($"Début du combat entre {Opponent1.CharacterName} et {Opponent2.CharacterName}");
 
@@ -348,6 +356,7 @@ public class Game : MonoBehaviour
             Debug.Log("On ne peut pas faire de changement de pokemon");
             return;
         }
+
         List<Pokemon> _temp = new List<Pokemon>(2);
         Human _currentOpponent;
         Pokemon _currentOpponentPokemon;
@@ -546,6 +555,6 @@ public class Game : MonoBehaviour
         }
 
         isGameEnded = true;
-        Debug.Log($"Fin du combat entre {Opponent1.CharacterName} et {Opponent2.CharacterName}. \n Le gagnant est {_winner.CharacterName} \n Merci d'avoir joué a {this.name}");
+        Debug.Log($"Fin du combat entre {Opponent1.CharacterName} et {Opponent2.CharacterName}. Le gagnant est {_winner.CharacterName} \n Merci d'avoir joué a {this.name}, pour recommencer relancez le jeu.");
     }
 }
